@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SprngIQ — O&M Intelligence Platform</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0F172A;--navy2:#1E293B;--navy3:#334155;
+  --amber:#F59E0B;--amber-l:#FEF3C7;--amber-m:#FDE68A;
+  --green:#059669;--green-l:#D1FAE5;--green-m:#6EE7B7;
+  --red:#DC2626;--red-l:#FEE2E2;--red-m:#FCA5A5;
+  --blue:#4F46E5;--blue-l:#EEF2FF;--blue-m:#A5B4FC;
+  --orange:#EA580C;--orange-l:#FFF7ED;--orange-m:#FDBA74;
+  --purple:#7C3AED;--purple-l:#F5F3FF;--purple-m:#C4B5FD;
+  --teal:#0D9488;--teal-l:#F0FDFA;--teal-m:#99F6E4;
+  --slate:#64748B;--slate-l:#F1F5F9;--slate-ll:#F8FAFC;
+  --border:#E2E8F0;--text:#0F172A;--muted:#64748B;--faint:#94A3B8;
+  --white:#FFFFFF;
+  --sh:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+  --sh-md:0 4px 16px rgba(0,0,0,.08),0 2px 6px rgba(0,0,0,.04);
+  --r:12px;--r-sm:8px;--r-xs:6px
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--slate-ll);color:var(--text);min-height:100vh;display:flex;font-size:14px;-webkit-font-smoothing:antialiased}
+
+/* ─ SIDEBAR ─ */
+.sb{width:224px;min-height:100vh;background:var(--navy);display:flex;flex-direction:column;flex-shrink:0;position:fixed;left:0;top:0;bottom:0;z-index:200;overflow-y:auto}
+.sb-logo{padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,.07)}
+.logo-name{font-size:1.3rem;font-weight:800;color:#fff;letter-spacing:-.02em}
+.logo-name em{color:var(--amber);font-style:normal}
+.logo-tag{font-size:.62rem;color:rgba(255,255,255,.32);margin-top:3px;letter-spacing:.04em}
+.sb-nav{flex:1;padding:14px 10px}
+.sb-sec{font-size:.6rem;font-weight:700;color:rgba(255,255,255,.25);letter-spacing:.08em;padding:14px 8px 5px;margin-top:2px}
+.nb{display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border-radius:var(--r-xs);background:none;border:none;color:rgba(255,255,255,.45);font-family:inherit;font-size:.8rem;font-weight:500;cursor:pointer;text-align:left;transition:all .15s;margin-bottom:1px;position:relative}
+.nb:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.8)}
+.nb.on{background:rgba(245,158,11,.14);color:var(--amber)}
+.nb-ico{font-size:.95rem;width:18px;text-align:center;flex-shrink:0}
+.nb-badge{margin-left:auto;background:var(--red);color:#fff;font-size:.56rem;font-weight:800;padding:1px 5px;border-radius:10px;min-width:16px;text-align:center}
+.nb-badge.amber{background:var(--amber);color:#000}
+.sb-foot{padding:12px 10px;border-top:1px solid rgba(255,255,255,.07)}
+.user-row{display:flex;align-items:center;gap:9px}
+.av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--amber),#D97706);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:800;color:#fff;flex-shrink:0}
+.un{font-size:.76rem;font-weight:700;color:#fff}
+.ur{font-size:.62rem;color:rgba(255,255,255,.35);margin-top:1px}
+
+/* ─ MAIN ─ */
+.main{margin-left:224px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);height:56px;padding:0 26px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:100;box-shadow:var(--sh)}
+.pg-title{font-size:.92rem;font-weight:800;color:var(--text)}
+.pg-sub{font-size:.68rem;color:var(--muted);margin-top:1px}
+.tbr{display:flex;align-items:center;gap:8px}
+.live-chip{display:flex;align-items:center;gap:5px;background:var(--green-l);border:1px solid #A7F3D0;border-radius:20px;padding:4px 11px;font-size:.67rem;font-weight:700;color:var(--green)}
+.ld{width:5px;height:5px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.ib{width:32px;height:32px;border-radius:var(--r-xs);background:var(--slate-ll);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.85rem;position:relative}
+.ib:hover{background:var(--slate-l)}
+.ndot{position:absolute;top:-2px;right:-2px;width:13px;height:13px;border-radius:50%;background:var(--red);border:2px solid #fff;font-size:.5rem;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center}
+
+/* ─ CONTENT ─ */
+.content{padding:22px 26px;flex:1}
+.screen{display:none}.screen.on{display:block}
+
+/* ─ PAGE HEADER ─ */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap}
+.ph-l .ph-name{font-size:1rem;font-weight:800;color:var(--text)}
+.ph-l .ph-desc{font-size:.7rem;color:var(--muted);margin-top:2px}
+.ph-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* ─ INNER TAB BAR ─ */
+.itabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:20px;overflow-x:auto}
+.itab{padding:9px 18px;font-size:.78rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s}
+.itab:hover{color:var(--text)}
+.itab.on{color:var(--blue);border-bottom-color:var(--blue)}
+.itab-content{display:none}.itab-content.on{display:block}
+
+/* ─ GRIDS ─ */
+.g{display:grid;gap:12px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.g4{grid-template-columns:1fr 1fr 1fr 1fr}
+.g5{grid-template-columns:repeat(5,1fr)}
+.g31{grid-template-columns:3fr 1.1fr}
+.g21{grid-template-columns:2fr 1fr}
+.gcol{display:flex;flex-direction:column;gap:12px}
+.gfull{grid-column:1/-1}
+
+/* ─ CARD ─ */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh)}
+.cb{padding:16px 18px}
+.ch{padding:14px 18px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.ct{font-size:.8rem;font-weight:700;color:var(--text)}
+.cs{font-size:.66rem;color:var(--muted);margin-top:1px}
+.ci{padding:12px 18px 16px}
+
+/* ─ KPI ─ */
+.kpi{background:var(--white);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);padding:14px 16px;position:relative;overflow:hidden;border-left:3px solid transparent}
+.kpi.ka{border-left-color:var(--amber)}.kpi.kg{border-left-color:var(--green)}.kpi.kr{border-left-color:var(--red)}.kpi.kb{border-left-color:var(--blue)}.kpi.ko{border-left-color:var(--orange)}.kpi.kp{border-left-color:var(--purple)}.kpi.kt{border-left-color:var(--teal)}
+.ki-bg{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:var(--r-xs);display:flex;align-items:center;justify-content:center;font-size:1rem}
+.ka .ki-bg{background:var(--amber-l)}.kg .ki-bg{background:var(--green-l)}.kr .ki-bg{background:var(--red-l)}.kb .ki-bg{background:var(--blue-l)}.ko .ki-bg{background:var(--orange-l)}.kp .ki-bg{background:var(--purple-l)}.kt .ki-bg{background:var(--teal-l)}
+.kl{font-size:.66rem;font-weight:600;color:var(--muted);margin-bottom:6px}
+.kv{font-size:1.65rem;font-weight:800;line-height:1;letter-spacing:-.03em;color:var(--text)}
+.ku{font-size:.75rem;font-weight:500;color:var(--muted);margin-left:2px}
+.kf{margin-top:7px;font-size:.66rem;color:var(--muted);display:flex;align-items:center;gap:4px}
+.up{color:var(--green);font-weight:700}.dn{color:var(--red);font-weight:700}.wa{color:var(--amber);font-weight:700}
+
+/* ─ PILLS ─ */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:.63rem;font-weight:700;white-space:nowrap}
+.pd{width:5px;height:5px;border-radius:50%;background:currentColor}
+.ok{background:var(--green-l);color:var(--green)}.warn{background:var(--orange-l);color:var(--orange)}.crit{background:var(--red-l);color:var(--red)}.info{background:var(--blue-l);color:var(--blue)}.neutral{background:var(--slate-l);color:var(--slate)}.purple{background:var(--purple-l);color:var(--purple)}
+
+/* ─ TABLE ─ */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:.62rem;font-weight:700;color:var(--muted);text-align:left;padding:8px 12px;border-bottom:2px solid var(--border);background:var(--slate-ll);white-space:nowrap}
+.tbl th.r{text-align:right}.tbl td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:.77rem;vertical-align:middle}
+.tbl td.r{text-align:right;font-weight:600}
+.tbl tbody tr{transition:background .1s}.tbl tbody tr:hover{background:var(--slate-ll)}
+.tbl tbody tr:last-child td{border-bottom:none}
+.gn{color:var(--green)}.rn{color:var(--red)}.an{color:var(--amber)}.bn{color:var(--blue)}.pn{color:var(--purple)}
+
+/* ─ MINI BAR ─ */
+.mbar-bg{height:6px;background:var(--slate-l);border-radius:4px;overflow:hidden;width:80px}
+.mbar-fill{height:6px;border-radius:4px}
+
+/* ─ ALERT CARD ─ */
+.alc{background:var(--white);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:10px;overflow:hidden}
+.alc:last-child{margin-bottom:0}
+.alc-top{padding:13px 16px;display:flex;gap:12px;align-items:flex-start}
+.alc-ico{width:38px;height:38px;border-radius:var(--r-xs);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.alc.cr .alc-ico{background:var(--red-l)}.alc.wn .alc-ico{background:var(--orange-l)}.alc.in .alc-ico{background:var(--blue-l)}.alc.pr .alc-ico{background:var(--purple-l)}
+.alc-body{flex:1}
+.alc-title{font-size:.83rem;font-weight:700;color:var(--text)}
+.alc-meta{display:flex;align-items:center;gap:7px;margin-top:4px;flex-wrap:wrap}
+.alc-desc{font-size:.71rem;color:var(--muted);margin-top:6px;line-height:1.55}
+.alc-foot{background:var(--slate-ll);border-top:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.alc-impact{display:flex;gap:16px;flex-wrap:wrap}
+.alc-imp-item{font-size:.69rem;color:var(--muted)}
+.alc-imp-item b{font-weight:700;font-size:.74rem}
+.btn-row{display:flex;gap:7px;flex-shrink:0}
+.btn{padding:5px 14px;border-radius:var(--r-xs);font-size:.72rem;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s;white-space:nowrap}
+.btn.prim{background:var(--navy);color:#fff}.btn.prim:hover{background:var(--navy2)}
+.btn.sec{background:var(--white);color:var(--text);border:1px solid var(--border)}.btn.sec:hover{background:var(--slate-ll)}
+.btn.amb{background:var(--amber);color:#000}.btn.amb:hover{background:#D97706}
+.btn.grn{background:var(--green);color:#fff}
+
+/* ─ INVERTER CARDS ─ */
+.inv-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px 15px;box-shadow:var(--sh);position:relative;overflow:hidden}
+.inv-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.inv-ok::before{background:var(--green)}.inv-warn::before{background:var(--amber)}.inv-crit::before{background:var(--red)}.inv-off::before{background:var(--slate)}
+.inv-id{font-size:.61rem;font-weight:700;color:var(--muted);margin-bottom:5px}
+.inv-kw{font-size:1.35rem;font-weight:800;letter-spacing:-.03em}
+.inv-kw-u{font-size:.68rem;font-weight:500;color:var(--muted)}
+.inv-stats{display:flex;gap:10px;margin-top:7px;flex-wrap:wrap}
+.inv-stat{font-size:.63rem;color:var(--muted)}
+.inv-stat b{color:var(--text);font-weight:700}
+.inv-bar-t{height:4px;background:var(--slate-l);border-radius:4px;margin-top:9px}
+.inv-bar-f{height:4px;border-radius:4px}
+.inv-note{font-size:.62rem;font-weight:600;margin-top:5px}
+
+/* ─ PROGRESS RING MINI ─ */
+.ring-wrap{display:inline-flex;flex-direction:column;align-items:center;gap:4px}
+.ring-val{font-size:1.1rem;font-weight:800;letter-spacing:-.02em}
+.ring-lbl{font-size:.6rem;color:var(--muted)}
+
+/* ─ MROW ─ */
+.mrow{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--border)}
+.mrow:last-child{border-bottom:none}
+.ml{font-size:.73rem;color:var(--muted)}.mv{font-size:.76rem;font-weight:700;color:var(--text)}
+
+/* ─ GAUGE ─ */
+.gauge-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+.gauge-row:last-child{border-bottom:none}
+.gauge-lbl{font-size:.72rem;color:var(--muted);width:140px;flex-shrink:0}
+.gauge-track{flex:1;height:7px;background:var(--slate-l);border-radius:6px;overflow:hidden}
+.gauge-fill{height:7px;border-radius:6px}
+.gauge-val{font-size:.74rem;font-weight:700;width:48px;text-align:right;flex-shrink:0}
+
+/* ─ SOILING TILE ─ */
+.soil-tile{background:var(--white);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px 15px;box-shadow:var(--sh)}
+.soil-block{font-size:1.5rem;font-weight:800;letter-spacing:-.03em}
+.soil-name{font-size:.67rem;color:var(--muted);margin-bottom:4px;font-weight:600}
+.soil-sub{font-size:.64rem;color:var(--muted);margin-top:3px}
+.soil-bar{height:5px;border-radius:4px;margin-top:7px}
+
+/* ─ TRANSFORMER GAUGE ─ */
+.temp-gauge{display:flex;flex-direction:column;align-items:center;gap:6px}
+.temp-val{font-size:2rem;font-weight:800;letter-spacing:-.04em}
+.temp-lbl{font-size:.67rem;color:var(--muted)}
+.temp-range{font-size:.62rem;color:var(--muted)}
+
+/* ─ CLEANING SCHED ─ */
+.clean-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.clean-row:last-child{border-bottom:none}
+.clean-zone{font-size:.76rem;font-weight:700;color:var(--text);width:80px;flex-shrink:0}
+.clean-date{font-size:.72rem;color:var(--muted);flex:1}
+.clean-soil{font-size:.73rem;font-weight:700;width:40px;text-align:right;flex-shrink:0}
+.clean-action{flex-shrink:0}
+.clean-eco{font-size:.64rem;color:var(--green);font-weight:600;margin-top:2px}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
+
+/* RESPONSIVE */
+@media(max-width:960px){.g3,.g4,.g5{grid-template-columns:1fr 1fr}.g31,.g21{grid-template-columns:1fr}}
+@media(max-width:680px){.sb{display:none}.main{margin-left:0}.g2{grid-template-columns:1fr}.g4{grid-template-columns:1fr 1fr}.content{padding:14px}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="sb-logo">
+    <div class="logo-name">Sprng<em>IQ</em></div>
+    <div class="logo-tag">O&M Intelligence Platform</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Overview</div>
+    <button class="nb on" onclick="goNav(this,'portfolio')"><span class="nb-ico">⚡</span>Portfolio</button>
+    <button class="nb" onclick="goNav(this,'plant')"><span class="nb-ico">🏭</span>Plant Overview</button>
+    <div class="sb-sec">O&M Intelligence</div>
+    <button class="nb" onclick="goNav(this,'inverter')"><span class="nb-ico">🔌</span>Inverter<span class="nb-badge amber">1</span></button>
+    <button class="nb" onclick="goNav(this,'transformer')"><span class="nb-ico">🔄</span>Transformer</button>
+    <button class="nb" onclick="goNav(this,'scb')"><span class="nb-ico">🔲</span>SCB / SMB Strings</button>
+    <button class="nb" onclick="goNav(this,'cleaning')"><span class="nb-ico">🧹</span>Module Cleaning<span class="nb-badge">2</span></button>
+    <button class="nb" onclick="goNav(this,'prcuf')"><span class="nb-ico">📊</span>PR & CUF Analysis</button>
+    <div class="sb-sec">Operations</div>
+    <button class="nb" onclick="goNav(this,'alerts')"><span class="nb-ico">🚨</span>Active Alerts<span class="nb-badge">7</span></button>
+    <button class="nb" onclick="goNav(this,'loss')"><span class="nb-ico">📉</span>Loss Analysis</button>
+    <button class="nb" onclick="goNav(this,'action')"><span class="nb-ico">🎯</span>Action Centre<span class="nb-badge">3</span></button>
+  </nav>
+  <div class="sb-foot">
+    <div class="user-row">
+      <div class="av">BD</div>
+      <div><div class="un">Binoy Debnath</div><div class="ur">Performance Analyst and O&M Manager</div></div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+<div class="topbar">
+  <div><div class="pg-title" id="pgT">Portfolio Overview</div><div class="pg-sub" id="pgS">1.2 GW · 26 plants · Last sync 2 min ago</div></div>
+  <div class="tbr">
+    <div class="live-chip"><div class="ld"></div>Live</div>
+    <div class="ib">🔔<div class="ndot">7</div></div>
+    <div class="ib">⚙️</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ═══════ PORTFOLIO ═══════ -->
+<div class="screen on" id="s-portfolio">
+  <div class="ph"><div class="ph-l"><div class="ph-name">Portfolio Overview</div><div class="ph-desc">26 plants · 1.2 GW · Real-time</div></div></div>
+  <div class="g g4" style="margin-bottom:14px">
+    <div class="kpi ka"><div class="ki-bg">⚡</div><div class="kl">Today's Generation</div><div class="kv">4.82<span class="ku">GWh</span></div><div class="kf"><span class="up">↑ 3.2%</span> vs yesterday</div></div>
+    <div class="kpi kg"><div class="ki-bg">📈</div><div class="kl">Portfolio PR</div><div class="kv">81.4<span class="ku">%</span></div><div class="kf"><span class="dn">↓ 1.1%</span> vs target 82.5%</div></div>
+    <div class="kpi kr"><div class="ki-bg">💸</div><div class="kl">Revenue Loss Today</div><div class="kv">₹8.7<span class="ku">L</span></div><div class="kf">Recoverable: <span class="wa">₹6.2 L</span></div></div>
+    <div class="kpi kb"><div class="ki-bg">🌤️</div><div class="kl">Avg Irradiance</div><div class="kv">642<span class="ku">W/m²</span></div><div class="kf">GHI: <b>5.4 kWh/m²</b></div></div>
+  </div>
+  <div class="card cb">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div><div class="ct">Plant Status</div><div class="cs">Click to drill down · 26 plants</div></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill ok"><span class="pd"></span>18 Healthy</span><span class="pill warn"><span class="pd"></span>6 Attention</span><span class="pill crit"><span class="pd"></span>2 Critical</span></div>
+    </div>
+    <table class="tbl">
+      <thead><tr><th>Plant</th><th>MW</th><th class="r">Today</th><th class="r">PR</th><th class="r">CUF</th><th class="r">Inverter Faults</th><th class="r">Soiling</th><th class="r">Status</th></tr></thead>
+      <tbody>
+        <tr onclick="goNav(document.querySelector('[data-sc=plant]'),'plant')"><td><b>SGPPL</b><div style="font-size:.64rem;color:var(--muted)">West Bengal</div></td><td>10</td><td class="r an">38,900 kWh</td><td class="r an">74.6%</td><td class="r">15.1%</td><td class="r rn">1 active</td><td class="r an">12.4%</td><td class="r"><span class="pill warn"><span class="pd"></span>Attention</span></td></tr>
+        <tr><td><b>Rajpur Solar</b><div style="font-size:.64rem;color:var(--muted)">Rajasthan</div></td><td>50</td><td class="r gn">192,500 kWh</td><td class="r gn">82.1%</td><td class="r">18.0%</td><td class="r gn">None</td><td class="r gn">3.1%</td><td class="r"><span class="pill ok"><span class="pd"></span>Healthy</span></td></tr>
+        <tr><td><b>Khavda Phase 2</b><div style="font-size:.64rem;color:var(--muted)">Gujarat</div></td><td>100</td><td class="r rn">362,000 kWh</td><td class="r rn">71.4%</td><td class="r">17.0%</td><td class="r rn">3 active</td><td class="r rn">18.7%</td><td class="r"><span class="pill crit"><span class="pd"></span>Critical</span></td></tr>
+        <tr><td><b>Anantapur East</b><div style="font-size:.64rem;color:var(--muted)">Andhra Pradesh</div></td><td>25</td><td class="r gn">94,200 kWh</td><td class="r gn">83.7%</td><td class="r">17.6%</td><td class="r gn">None</td><td class="r gn">2.8%</td><td class="r"><span class="pill ok"><span class="pd"></span>Healthy</span></td></tr>
+        <tr><td><b>Pavagada Block C</b><div style="font-size:.64rem;color:var(--muted)">Karnataka</div></td><td>40</td><td class="r an">147,200 kWh</td><td class="r an">76.8%</td><td class="r">17.2%</td><td class="r an">1 warning</td><td class="r an">9.3%</td><td class="r"><span class="pill warn"><span class="pd"></span>Attention</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════ PLANT OVERVIEW ═══════ -->
+<div class="screen" id="s-plant">
+  <div class="ph">
+    <div class="ph-l"><div class="ph-name">SGPPL SPVPP — Plant Overview</div><div class="ph-desc">10 MW · APSEB · Andra Pradesh · 2nd Year</div></div>
+    <div class="ph-r"><span class="pill warn"><span class="pd"></span>Attention</span><span class="pill ok">SCADA Online</span><span class="pill info">Grid Connected</span></div>
+  </div>
+  <div class="g g4" style="margin-bottom:14px">
+    <div class="kpi ka"><div class="ki-bg">⚡</div><div class="kl">Annual Export</div><div class="kv">13,213<span class="ku">MWh</span></div><div class="kf">2nd year · full cycle</div></div>
+    <div class="kpi kg"><div class="ki-bg">📈</div><div class="kl">Avg PR</div><div class="kv">74.6<span class="ku">%</span></div><div class="kf"><span class="dn">↓ 3.4%</span> below 78% target</div></div>
+    <div class="kpi kb"><div class="ki-bg">⚙️</div><div class="kl">Capacity Factor</div><div class="kv">15.1<span class="ku">%</span></div><div class="kf">Avg monthly</div></div>
+    <div class="kpi kr"><div class="ki-bg">💸</div><div class="kl">Total Revenue Lost</div><div class="kv">₹258<span class="ku">L</span></div><div class="kf">Annual · all loss categories</div></div>
+  </div>
+  <div class="g g2">
+    <div class="card cb"><div class="ct" style="margin-bottom:12px">Monthly Generation — Actual vs Expected</div><canvas id="plantGenC" height="200"></canvas></div>
+    <div class="card cb"><div class="ct" style="margin-bottom:12px">PR Trend vs 78% Target</div><canvas id="plantPrC" height="200"></canvas></div>
+  </div>
+</div>
+
+<!-- ═══════ INVERTER ═══════ -->
+<div class="screen" id="s-inverter">
+  <div class="ph">
+    <div class="ph-l"><div class="ph-name">Inverter Intelligence</div><div class="ph-desc">SGPPL · 4 inverters · 2.5 MW each · Real-time + Historical</div></div>
+    <div class="ph-r"><span class="pill warn"><span class="pd"></span>1 Warning</span><span class="pill ok">3 Normal</span></div>
+  </div>
+
+  <div class="itabs">
+    <div class="itab on" onclick="itab(this,'inv-live')">Live Status</div>
+    <div class="itab" onclick="itab(this,'inv-pr')">PR Comparison</div>
+    <div class="itab" onclick="itab(this,'inv-mppt')">MPPT Tracking</div>
+    <div class="itab" onclick="itab(this,'inv-fault')">Fault History</div>
+    <div class="itab" onclick="itab(this,'inv-trend')">Generation Trend</div>
+  </div>
+
+  <!-- LIVE STATUS -->
+  <div class="itab-content on" id="inv-live">
+    <div class="g g4" style="margin-bottom:14px">
+      <div class="kpi kg"><div class="ki-bg">⚡</div><div class="kl">Total AC Output</div><div class="kv">9,105<span class="ku">kW</span></div><div class="kf">of 10,000 kW capacity</div></div>
+      <div class="kpi ka"><div class="ki-bg">📊</div><div class="kl">Combined Efficiency</div><div class="kv">96.1<span class="ku">%</span></div><div class="kf">Inv 1 dragging avg down</div></div>
+      <div class="kpi kr"><div class="ki-bg">⚠️</div><div class="kl">Underperforming</div><div class="kv">1<span class="ku">inverter</span></div><div class="kf">Inv 1 · 7.8% below peers</div></div>
+      <div class="kpi kb"><div class="ki-bg">🌡️</div><div class="kl">Avg Module Temp</div><div class="kv">52<span class="ku">°C</span></div><div class="kf">Ambient: 32°C</div></div>
+    </div>
+    <div class="g g4" style="margin-bottom:14px">
+      <div class="inv-card inv-warn">
+        <div class="inv-id">INVERTER 01 · 2.5 MW</div>
+        <div class="inv-kw" style="color:var(--amber)">2,142<span class="inv-kw-u"> kW</span></div>
+        <div class="inv-stats">
+          <div class="inv-stat">DC V <b>850V</b></div>
+          <div class="inv-stat">DC A <b>2,519A</b></div>
+          <div class="inv-stat">AC V <b>415V</b></div>
+          <div class="inv-stat">Freq <b>50Hz</b></div>
+          <div class="inv-stat">η <b style="color:var(--amber)">91.2%</b></div>
+        </div>
+        <div class="inv-bar-t"><div class="inv-bar-f" style="width:85.7%;background:var(--amber)"></div></div>
+        <div class="inv-note" style="color:var(--amber)">⚠ 7.8% below peer avg · Inspect strings 4,7,9</div>
+      </div>
+      <div class="inv-card inv-ok">
+        <div class="inv-id">INVERTER 02 · 2.5 MW</div>
+        <div class="inv-kw" style="color:var(--green)">2,298<span class="inv-kw-u"> kW</span></div>
+        <div class="inv-stats">
+          <div class="inv-stat">DC V <b>856V</b></div>
+          <div class="inv-stat">DC A <b>2,685A</b></div>
+          <div class="inv-stat">AC V <b>415V</b></div>
+          <div class="inv-stat">Freq <b>50Hz</b></div>
+          <div class="inv-stat">η <b style="color:var(--green)">97.4%</b></div>
+        </div>
+        <div class="inv-bar-t"><div class="inv-bar-f" style="width:91.9%;background:var(--green)"></div></div>
+        <div class="inv-note" style="color:var(--green)">✓ Normal operation</div>
+      </div>
+      <div class="inv-card inv-ok">
+        <div class="inv-id">INVERTER 03 · 2.5 MW</div>
+        <div class="inv-kw" style="color:var(--green)">2,401<span class="inv-kw-u"> kW</span></div>
+        <div class="inv-stats">
+          <div class="inv-stat">DC V <b>862V</b></div>
+          <div class="inv-stat">DC A <b>2,785A</b></div>
+          <div class="inv-stat">AC V <b>415V</b></div>
+          <div class="inv-stat">Freq <b>50Hz</b></div>
+          <div class="inv-stat">η <b style="color:var(--green)">99.1%</b></div>
+        </div>
+        <div class="inv-bar-t"><div class="inv-bar-f" style="width:96%;background:var(--green)"></div></div>
+        <div class="inv-note" style="color:var(--green)">✓ Best performer today</div>
+      </div>
+      <div class="inv-card inv-ok">
+        <div class="inv-id">INVERTER 04 · 2.5 MW</div>
+        <div class="inv-kw" style="color:var(--green)">2,264<span class="inv-kw-u"> kW</span></div>
+        <div class="inv-stats">
+          <div class="inv-stat">DC V <b>849V</b></div>
+          <div class="inv-stat">DC A <b>2,667A</b></div>
+          <div class="inv-stat">AC V <b>415V</b></div>
+          <div class="inv-stat">Freq <b>50Hz</b></div>
+          <div class="inv-stat">η <b style="color:var(--green)">95.8%</b></div>
+        </div>
+        <div class="inv-bar-t"><div class="inv-bar-f" style="width:90.6%;background:var(--green)"></div></div>
+        <div class="inv-note" style="color:var(--green)">✓ Normal operation</div>
+      </div>
+    </div>
+    <div class="card cb">
+      <div class="ct" style="margin-bottom:12px">Inverter Downtime Log — This Year</div>
+      <table class="tbl">
+        <thead><tr><th>Inverter</th><th>Total Downtime</th><th class="r">Events</th><th class="r">Longest Outage</th><th class="r">Last Event</th><th class="r">Est. Loss</th><th class="r">Status</th></tr></thead>
+        <tbody>
+          <tr><td><b>Inverter 01</b></td><td>38.2 hrs</td><td class="r rn">7</td><td class="r">9.4 hrs</td><td class="r">3 days ago</td><td class="r rn">₹14.3 L</td><td class="r"><span class="pill warn">Monitoring</span></td></tr>
+          <tr><td><b>Inverter 02</b></td><td>4.1 hrs</td><td class="r an">2</td><td class="r">3.2 hrs</td><td class="r">42 days ago</td><td class="r an">₹1.6 L</td><td class="r"><span class="pill ok">Normal</span></td></tr>
+          <tr><td><b>Inverter 03</b></td><td>1.5 hrs</td><td class="r gn">1</td><td class="r">1.5 hrs</td><td class="r">87 days ago</td><td class="r gn">₹0.6 L</td><td class="r"><span class="pill ok">Normal</span></td></tr>
+          <tr><td><b>Inverter 04</b></td><td>6.8 hrs</td><td class="r an">3</td><td class="r">4.1 hrs</td><td class="r">18 days ago</td><td class="r an">₹2.7 L</td><td class="r"><span class="pill ok">Normal</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PR COMPARISON -->
+  <div class="itab-content" id="inv-pr">
+    <div class="g g4" style="margin-bottom:14px">
+      <div class="kpi kg"><div class="kl">Inv 3 — Best PR</div><div class="kv">99.1<span class="ku">%</span></div><div class="kf" style="color:var(--green)">Reference unit</div></div>
+      <div class="kpi kb"><div class="kl">Inv 2 — PR</div><div class="kv">97.4<span class="ku">%</span></div><div class="kf"><span class="dn">↓ 1.7%</span> vs Inv 3</div></div>
+      <div class="kpi ko"><div class="kl">Inv 4 — PR</div><div class="kv">95.8<span class="ku">%</span></div><div class="kf"><span class="dn">↓ 3.3%</span> vs Inv 3</div></div>
+      <div class="kpi kr"><div class="kl">Inv 1 — PR</div><div class="kv">91.2<span class="ku">%</span></div><div class="kf"><span class="dn">↓ 7.9%</span> vs Inv 3 · Alert</div></div>
+    </div>
+    <div class="g g2">
+      <div class="card cb"><div class="ct" style="margin-bottom:12px">Monthly PR — All 4 Inverters</div><canvas id="invPrC" height="230"></canvas></div>
+      <div class="card cb">
+        <div class="ct" style="margin-bottom:14px">Annual PR Deviation from Best Performer (Inv 3)</div>
+        <div class="gauge-row"><div class="gauge-lbl">Inverter 01</div><div class="gauge-track"><div class="gauge-fill" style="width:91%;background:var(--amber)"></div></div><div class="gauge-val" style="color:var(--amber)">91.2%</div></div>
+        <div class="gauge-row"><div class="gauge-lbl">Inverter 02</div><div class="gauge-track"><div class="gauge-fill" style="width:97%;background:var(--green)"></div></div><div class="gauge-val" style="color:var(--green)">97.4%</div></div>
+        <div class="gauge-row"><div class="gauge-lbl">Inverter 03</div><div class="gauge-track"><div class="gauge-fill" style="width:99%;background:var(--blue)"></div></div><div class="gauge-val" style="color:var(--blue)">99.1%</div></div>
+        <div class="gauge-row"><div class="gauge-lbl">Inverter 04</div><div class="gauge-track"><div class="gauge-fill" style="width:96%;background:var(--green)"></div></div><div class="gauge-val" style="color:var(--green)">95.8%</div></div>
+        <div style="margin-top:14px;background:var(--red-l);border:1px solid var(--red-m);border-radius:var(--r-xs);padding:10px 12px">
+          <div style="font-size:.72rem;font-weight:700;color:var(--red);margin-bottom:3px">⚠ Inv 1 Deviation Alert</div>
+          <div style="font-size:.68rem;color:var(--muted);line-height:1.5">Inv 1 consistently 7–10% below peer group. Over 12 months this translates to <b style="color:var(--text)">345 MWh under-generation</b> and estimated <b style="color:var(--red)">₹27.6 L</b> revenue loss. Immediate investigation recommended.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MPPT TRACKING -->
+  <div class="itab-content" id="inv-mppt">
+    <div class="card cb" style="margin-bottom:14px">
+      <div class="ct" style="margin-bottom:14px">MPPT Channel Status — All Inverters (Today)</div>
+      <table class="tbl">
+        <thead><tr><th>Inverter</th><th>MPPT</th><th class="r">Vdc (V)</th><th class="r">Idc (A)</th><th class="r">Power (kW)</th><th class="r">Expected (kW)</th><th class="r">Deviation</th><th class="r">Status</th></tr></thead>
+        <tbody>
+          <tr><td>Inv 01</td><td>MPPT-A</td><td class="r">848</td><td class="r">628</td><td class="r">533</td><td class="r">600</td><td class="r rn">−11.2%</td><td class="r"><span class="pill crit">Check</span></td></tr>
+          <tr><td>Inv 01</td><td>MPPT-B</td><td class="r">851</td><td class="r">654</td><td class="r">556</td><td class="r">600</td><td class="r an">−7.3%</td><td class="r"><span class="pill warn">Monitor</span></td></tr>
+          <tr><td>Inv 01</td><td>MPPT-C</td><td class="r">852</td><td class="r">680</td><td class="r">579</td><td class="r">600</td><td class="r an">−3.5%</td><td class="r"><span class="pill warn">Monitor</span></td></tr>
+          <tr><td>Inv 01</td><td>MPPT-D</td><td class="r">855</td><td class="r">704</td><td class="r">474</td><td class="r">600</td><td class="r rn">−21.0%</td><td class="r"><span class="pill crit">Critical</span></td></tr>
+          <tr><td>Inv 02</td><td>MPPT-A</td><td class="r">857</td><td class="r">672</td><td class="r">575</td><td class="r">580</td><td class="r gn">−0.9%</td><td class="r"><span class="pill ok">Normal</span></td></tr>
+          <tr><td>Inv 02</td><td>MPPT-B</td><td class="r">854</td><td class="r">681</td><td class="r">582</td><td class="r">580</td><td class="r gn">+0.3%</td><td class="r"><span class="pill ok">Normal</span></td></tr>
+          <tr><td>Inv 03</td><td>MPPT-A</td><td class="r">862</td><td class="r">698</td><td class="r">601</td><td class="r">600</td><td class="r gn">+0.2%</td><td class="r"><span class="pill ok">Normal</span></td></tr>
+          <tr><td>Inv 04</td><td>MPPT-A</td><td class="r">847</td><td class="r">665</td><td class="r">563</td><td class="r">580</td><td class="r an">−2.9%</td><td class="r"><span class="pill ok">Normal</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="background:var(--red-l);border:1px solid var(--red-m);border-radius:var(--r);padding:13px 16px">
+      <div style="font-size:.8rem;font-weight:700;color:var(--red);margin-bottom:6px">🔴 Critical MPPT Alert — Inv 01 MPPT-D</div>
+      <div style="font-size:.72rem;color:var(--muted);line-height:1.6">MPPT-D on Inverter 01 is operating at <b style="color:var(--text)">21% below expected</b>. DC current severely degraded. Possible causes: open-circuit string, blown fuse in combiner box, or severe soiling on connected string group. <b style="color:var(--red)">Dispatch O&M technician immediately.</b> Estimated daily loss: ₹3,200.</div>
+      <div style="margin-top:10px;display:flex;gap:8px"><button class="btn prim">Raise Work Order</button><button class="btn sec">View I-V Curve</button></div>
+    </div>
+  </div>
+
+  <!-- FAULT HISTORY -->
+  <div class="itab-content" id="inv-fault">
+    <div class="card" style="overflow:hidden">
+      <div class="ch" style="padding-bottom:12px"><div><div class="ct">Inverter Fault History — Last 12 Months</div><div class="cs">All fault events across 4 inverters</div></div></div>
+      <table class="tbl">
+        <thead><tr><th>Date</th><th>Inverter</th><th>Fault Type</th><th class="r">Duration</th><th class="r">Gen. Lost</th><th class="r">Rev. Lost</th><th class="r">Resolution</th><th class="r">Status</th></tr></thead>
+        <tbody>
+          <tr><td>Oct 14, 2023</td><td><b>Inv 01</b></td><td>DC Overcurrent — MPPT-D</td><td class="r rn">9.4 hrs</td><td class="r rn">24.6 kWh</td><td class="r rn">₹19,680</td><td class="r">Fuse replaced</td><td class="r"><span class="pill ok">Closed</span></td></tr>
+          <tr><td>Sep 22, 2023</td><td><b>Inv 04</b></td><td>Grid undervoltage trip</td><td class="r an">4.1 hrs</td><td class="r an">10.7 kWh</td><td class="r an">₹8,560</td><td class="r">Auto-restart</td><td class="r"><span class="pill ok">Closed</span></td></tr>
+          <tr><td>Aug 08, 2023</td><td><b>Inv 01</b></td><td>String current imbalance</td><td class="r an">6.2 hrs</td><td class="r an">16.1 kWh</td><td class="r an">₹12,880</td><td class="r">String rebalanced</td><td class="r"><span class="pill ok">Closed</span></td></tr>
+          <tr><td>Jul 14, 2023</td><td><b>Inv 04</b></td><td>Overtemperature shutdown</td><td class="r an">2.7 hrs</td><td class="r an">7.0 kWh</td><td class="r an">₹5,600</td><td class="r">Cooling fan cleaned</td><td class="r"><span class="pill ok">Closed</span></td></tr>
+          <tr><td>Feb 19, 2023</td><td><b>Inv 01</b></td><td>Communication loss</td><td class="r rn">11.8 hrs</td><td class="r rn">0 kWh</td><td class="r">—</td><td class="r">Cable reconnected</td><td class="r"><span class="pill ok">Closed</span></td></tr>
+          <tr><td>Nov 08, 2022</td><td><b>Inv 02</b></td><td>Grid overvoltage trip</td><td class="r gn">1.2 hrs</td><td class="r gn">3.1 kWh</td><td class="r gn">₹2,480</td><td class="r">Auto-restart</td><td class="r"><span class="pill ok">Closed</span></td></tr>
+          <tr><td style="color:var(--amber);font-weight:600">Active</td><td><b>Inv 01</b></td><td>MPPT-D string underperformance</td><td class="r rn">Ongoing</td><td class="r rn">Growing</td><td class="r rn">Growing</td><td class="r">Pending dispatch</td><td class="r"><span class="pill warn">Open</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- GENERATION TREND -->
+  <div class="itab-content" id="inv-trend">
+    <div class="g g2">
+      <div class="card cb"><div class="ct" style="margin-bottom:12px">Monthly Generation per Inverter (MWh)</div><canvas id="invGenC" height="230"></canvas></div>
+      <div class="card cb"><div class="ct" style="margin-bottom:12px">Annual Share of Gross Generation</div><canvas id="invShareC" height="230"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ TRANSFORMER ═══════ -->
+<div class="screen" id="s-transformer">
+  <div class="ph"><div class="ph-l"><div class="ph-name">Transformer Health</div><div class="ph-desc">SGPPL · 1×10 MVA · 33/0.415 kV · Oil-cooled ONAN</div></div><div class="ph-r"><span class="pill ok"><span class="pd"></span>Healthy</span></div></div>
+
+  <div class="g g4" style="margin-bottom:14px">
+    <div class="kpi kg"><div class="ki-bg">🌡️</div><div class="kl">Oil Temperature</div><div class="kv">62<span class="ku">°C</span></div><div class="kf">Limit: 95°C · <span class="up">Safe</span></div></div>
+    <div class="kpi kg"><div class="ki-bg">🔥</div><div class="kl">Winding Temperature</div><div class="kv">78<span class="ku">°C</span></div><div class="kf">Limit: 105°C · <span class="up">Safe</span></div></div>
+    <div class="kpi kb"><div class="ki-bg">⚡</div><div class="kl">Load Factor</div><div class="kv">91<span class="ku">%</span></div><div class="kf">9.1 MVA of 10 MVA</div></div>
+    <div class="kpi ka"><div class="ki-bg">🔄</div><div class="kl">Tap Position</div><div class="kv">3<span class="ku">of 5</span></div><div class="kf">Nominal tap · 33 kV</div></div>
+  </div>
+
+  <div class="g g21" style="margin-bottom:14px">
+    <div class="card cb">
+      <div class="ct" style="margin-bottom:14px">Transformer Parameters — Real-time</div>
+      <div class="gauge-row"><div class="gauge-lbl">Oil Temperature (°C)</div><div class="gauge-track"><div class="gauge-fill" style="width:65%;background:var(--green)"></div></div><div class="gauge-val" style="color:var(--green)">62°C</div></div>
+      <div class="gauge-row"><div class="gauge-lbl">Winding Temp (°C)</div><div class="gauge-track"><div class="gauge-fill" style="width:74%;background:var(--green)"></div></div><div class="gauge-val" style="color:var(--green)">78°C</div></div>
+      <div class="gauge-row"><div class="gauge-lbl">Load Factor (%)</div><div class="gauge-track"><div class="gauge-fill" style="width:91%;background:var(--amber)"></div></div><div class="gauge-val" style="color:var(--amber)">91%</div></div>
+      <div class="gauge-row"><div class="gauge-lbl">HV Voltage (kV)</div><div class="gauge-track"><div class="gauge-fill" style="width:70%;background:var(--blue)"></div></div><div class="gauge-val" style="color:var(--blue)">33.1</div></div>
+      <div class="gauge-row"><div class="gauge-lbl">LV Voltage (V)</div><div class="gauge-track"><div class="gauge-fill" style="width:85%;background:var(--blue)"></div></div><div class="gauge-val" style="color:var(--blue)">415</div></div>
+      <div class="gauge-row"><div class="gauge-lbl">Power Factor</div><div class="gauge-track"><div class="gauge-fill" style="width:97%;background:var(--green)"></div></div><div class="gauge-val" style="color:var(--green)">0.97</div></div>
+      <div class="gauge-row"><div class="gauge-lbl">THD (%)</div><div class="gauge-track"><div class="gauge-fill" style="width:24%;background:var(--green)"></div></div><div class="gauge-val" style="color:var(--green)">2.4%</div></div>
+    </div>
+    <div class="gcol">
+      <div class="card cb">
+        <div class="ct" style="margin-bottom:10px">Maintenance Schedule</div>
+        <div class="mrow"><div class="ml">Last oil test</div><div class="mv">Apr 15, 2023</div></div>
+        <div class="mrow"><div class="ml">Next oil test</div><div class="mv" style="color:var(--amber)">Apr 15, 2024</div></div>
+        <div class="mrow"><div class="ml">Silica gel check</div><div class="mv">Oct 2023</div></div>
+        <div class="mrow"><div class="ml">Insulation test</div><div class="mv">Nov 2024 due</div></div>
+        <div class="mrow"><div class="ml">Tap changer service</div><div class="mv">Jan 2024 due</div></div>
+        <div class="mrow"><div class="ml">Oil replacement</div><div class="mv">No action needed</div></div>
+      </div>
+      <div class="card cb">
+        <div class="ct" style="margin-bottom:10px">Alarm Thresholds</div>
+        <div class="mrow"><div class="ml">Oil temp warning</div><div class="mv an">85°C</div></div>
+        <div class="mrow"><div class="ml">Oil temp trip</div><div class="mv rn">95°C</div></div>
+        <div class="mrow"><div class="ml">Winding warning</div><div class="mv an">100°C</div></div>
+        <div class="mrow"><div class="ml">Winding trip</div><div class="mv rn">105°C</div></div>
+        <div class="mrow"><div class="ml">Overload warning</div><div class="mv an">100%</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card cb">
+    <div class="ct" style="margin-bottom:12px">Temperature Trend — Last 12 Months</div>
+    <canvas id="trfTempC" height="150"></canvas>
+  </div>
+</div>
+
+<!-- ═══════ SCB / SMB ═══════ -->
+<div class="screen" id="s-scb">
+  <div class="ph"><div class="ph-l"><div class="ph-name">SCB / SMB — String Monitoring</div><div class="ph-desc">SGPPL · 4 SCBs · 40 strings · Specific Yield per string</div></div><div class="ph-r"><span class="pill crit"><span class="pd"></span>4 Underperforming</span><span class="pill warn"><span class="pd"></span>3 Warning</span></div></div>
+
+  <div class="g g4" style="margin-bottom:14px">
+    <div class="kpi kg"><div class="ki-bg">🔲</div><div class="kl">Total Strings</div><div class="kv">40<span class="ku">strings</span></div><div class="kf">10 per SCB × 4 SCBs</div></div>
+    <div class="kpi kr"><div class="ki-bg">⚠️</div><div class="kl">Underperforming</div><div class="kv">4<span class="ku">strings</span></div><div class="kf">Below 85% of group avg</div></div>
+    <div class="kpi ka"><div class="ki-bg">🔍</div><div class="kl">Warning Strings</div><div class="kv">3<span class="ku">strings</span></div><div class="kf">85–92% of group avg</div></div>
+    <div class="kpi kg"><div class="ki-bg">📐</div><div class="kl">Best Specific Yield</div><div class="kv">1,411<span class="ku">kWh/kWp</span></div><div class="kf">SCB-2 String 04</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px;overflow:hidden">
+    <div class="ch" style="padding-bottom:12px"><div><div class="ct">String-level Specific Yield — All 40 Strings</div><div class="cs">Annual kWh/kWp · Red = critical · Amber = warning · Green = normal</div></div><span class="pill info">Per string = 25 kWp</span></div>
+    <table class="tbl">
+      <thead><tr><th>SCB</th><th>String</th><th class="r">Isc Today (A)</th><th class="r">Voc (V)</th><th class="r">Power (kW)</th><th class="r">Spec. Yield (kWh/kWp)</th><th class="r">vs Group Avg</th><th class="r">Status</th></tr></thead>
+      <tbody id="stringTbody"></tbody>
+    </table>
+  </div>
+  <div class="card cb">
+    <div class="ct" style="margin-bottom:12px">Specific Yield Comparison — All Strings</div>
+    <canvas id="stringC" height="160"></canvas>
+  </div>
+</div>
+
+<!-- ═══════ MODULE CLEANING ═══════ -->
+<div class="screen" id="s-cleaning">
+  <div class="ph"><div class="ph-l"><div class="ph-name">Module Cleaning Intelligence</div><div class="ph-desc">SGPPL · Soiling analysis · Economic justification · Schedule</div></div></div>
+
+  <div class="g g4" style="margin-bottom:14px">
+    <div class="kpi kr"><div class="ki-bg">🌫️</div><div class="kl">Current Soiling Loss</div><div class="kv">12.4<span class="ku">%</span></div><div class="kf">Oct'23 · Clean immediately</div></div>
+    <div class="kpi kr"><div class="ki-bg">📉</div><div class="kl">Monthly Energy Lost</div><div class="kv">171<span class="ku">MWh</span></div><div class="kf">Due to soiling this month</div></div>
+    <div class="kpi ka"><div class="ki-bg">💰</div><div class="kl">Revenue Impact</div><div class="kv">₹13.7<span class="ku">L</span></div><div class="kf">At ₹8/kWh tariff</div></div>
+    <div class="kpi kg"><div class="ki-bg">🧹</div><div class="kl">Cleaning Cost</div><div class="kv">₹1.2<span class="ku">L</span></div><div class="kf">Net recovery: ₹12.5 L</div></div>
+  </div>
+
+  <div class="g g21" style="margin-bottom:14px">
+    <!-- Soiling by zone -->
+    <div class="card cb">
+      <div class="ct" style="margin-bottom:14px">Zone-wise Soiling Level — Current Month</div>
+      <div class="g g4" style="margin-bottom:14px">
+        <div class="soil-tile"><div class="soil-name">Zone A</div><div class="soil-block rn">14.2%</div><div class="soil-sub">Critical · Clean now</div><div class="soil-bar" style="background:var(--red);width:100%"></div></div>
+        <div class="soil-tile"><div class="soil-name">Zone B</div><div class="soil-block an">11.8%</div><div class="soil-sub">High · Schedule clean</div><div class="soil-bar" style="background:var(--amber);width:83%"></div></div>
+        <div class="soil-tile"><div class="soil-name">Zone C</div><div class="soil-block an">10.9%</div><div class="soil-sub">High · Schedule clean</div><div class="soil-bar" style="background:var(--amber);width:77%"></div></div>
+        <div class="soil-tile"><div class="soil-name">Zone D</div><div class="soil-block gn">7.3%</div><div class="soil-sub">Moderate · Monitor</div><div class="soil-bar" style="background:var(--green);width:51%"></div></div>
+      </div>
+      <div class="ct" style="margin-bottom:10px;font-size:.76rem">Annual Soiling Trend</div>
+      <canvas id="soilC" height="160"></canvas>
+    </div>
+    <!-- Cleaning schedule + economics -->
+    <div class="gcol">
+      <div class="card cb">
+        <div class="ct" style="margin-bottom:12px">Cleaning Schedule</div>
+        <div class="clean-row">
+          <div class="clean-zone" style="color:var(--red);font-weight:800">Zone A</div>
+          <div>
+            <div class="clean-date">Last cleaned: Sep 15, 2023</div>
+            <div class="clean-eco">ROI: ₹11.4 L net recovery</div>
+          </div>
+          <div class="clean-soil rn">14.2%</div>
+          <div class="clean-action"><button class="btn amb" style="font-size:.66rem;padding:4px 10px">Schedule Now</button></div>
+        </div>
+        <div class="clean-row">
+          <div class="clean-zone" style="color:var(--amber);font-weight:800">Zone B</div>
+          <div>
+            <div class="clean-date">Last cleaned: Sep 18, 2023</div>
+            <div class="clean-eco">ROI: ₹9.4 L net recovery</div>
+          </div>
+          <div class="clean-soil an">11.8%</div>
+          <div class="clean-action"><button class="btn amb" style="font-size:.66rem;padding:4px 10px">Schedule Now</button></div>
+        </div>
+        <div class="clean-row">
+          <div class="clean-zone" style="color:var(--amber);font-weight:800">Zone C</div>
+          <div>
+            <div class="clean-date">Last cleaned: Sep 20, 2023</div>
+            <div class="clean-eco">ROI: ₹8.7 L net recovery</div>
+          </div>
+          <div class="clean-soil an">10.9%</div>
+          <div class="clean-action"><button class="btn sec" style="font-size:.66rem;padding:4px 10px">Plan</button></div>
+        </div>
+        <div class="clean-row">
+          <div class="clean-zone" style="color:var(--green);font-weight:800">Zone D</div>
+          <div>
+            <div class="clean-date">Last cleaned: Oct 01, 2023</div>
+            <div class="clean-eco">Wait — not yet economic</div>
+          </div>
+          <div class="clean-soil gn">7.3%</div>
+          <div class="clean-action"><button class="btn sec" style="font-size:.66rem;padding:4px 10px">Monitor</button></div>
+        </div>
+      </div>
+      <div class="card cb">
+        <div class="ct" style="margin-bottom:10px">Economic Break-even Analysis</div>
+        <div class="mrow"><div class="ml">Soiling threshold to clean</div><div class="mv">≥ 5.0%</div></div>
+        <div class="mrow"><div class="ml">Current soiling loss/day</div><div class="mv rn">5,700 kWh</div></div>
+        <div class="mrow"><div class="ml">Revenue lost/day</div><div class="mv rn">₹45,600</div></div>
+        <div class="mrow"><div class="ml">Cleaning cost (all zones)</div><div class="mv an">₹1.2 L</div></div>
+        <div class="mrow"><div class="ml">Break-even in</div><div class="mv gn">2.6 days</div></div>
+        <div class="mrow"><div class="ml">Net monthly recovery</div><div class="mv gn">₹12.5 L</div></div>
+        <div style="margin-top:10px;background:var(--green-l);border:1px solid var(--green-m);border-radius:var(--r-xs);padding:9px 12px;font-size:.7rem;color:var(--green);font-weight:700">✓ Cleaning is strongly economically justified. Dispatch team within 2 days.</div>
+      </div>
+    </div>
+  </div>
+  <!-- Cleaning history -->
+  <div class="card" style="overflow:hidden">
+    <div class="ch" style="padding-bottom:12px"><div class="ct">Cleaning History — This Year</div></div>
+    <table class="tbl">
+      <thead><tr><th>Date</th><th>Zones Cleaned</th><th class="r">Pre-clean Soiling</th><th class="r">Post-clean Soiling</th><th class="r">Recovery (MWh)</th><th class="r">Revenue Recovered</th><th class="r">Cost</th></tr></thead>
+      <tbody>
+        <tr><td>Oct 01, 2023</td><td>Zone D</td><td class="r an">9.1%</td><td class="r gn">1.2%</td><td class="r gn">38 MWh</td><td class="r gn">₹3.0 L</td><td class="r">₹0.3 L</td></tr>
+        <tr><td>Sep 15–20, 2023</td><td>Zones A, B, C</td><td class="r rn">15.3%</td><td class="r gn">1.8%</td><td class="r gn">142 MWh</td><td class="r gn">₹11.4 L</td><td class="r">₹0.9 L</td></tr>
+        <tr><td>Jun 10, 2023</td><td>All Zones</td><td class="r an">8.2%</td><td class="r gn">1.1%</td><td class="r gn">87 MWh</td><td class="r gn">₹6.9 L</td><td class="r">₹1.2 L</td></tr>
+        <tr><td>Mar 08, 2023</td><td>All Zones</td><td class="r an">9.0%</td><td class="r gn">0.9%</td><td class="r gn">96 MWh</td><td class="r gn">₹7.7 L</td><td class="r">₹1.2 L</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════ PR & CUF ═══════ -->
+<div class="screen" id="s-prcuf">
+  <div class="ph"><div class="ph-l"><div class="ph-name">PR & CUF Analysis</div><div class="ph-desc">SGPPL · Equipment benchmarking · Monthly trends · Deviation flags</div></div></div>
+
+  <div class="g g4" style="margin-bottom:14px">
+    <div class="kpi kg"><div class="ki-bg">📈</div><div class="kl">Best Month PR</div><div class="kv">77.7<span class="ku">%</span></div><div class="kf">Jun'23 · Jun is best PR month</div></div>
+    <div class="kpi kr"><div class="ki-bg">📉</div><div class="kl">Worst Month PR</div><div class="kv">71.0<span class="ku">%</span></div><div class="kf">Sep'23 · Grid + soiling combined</div></div>
+    <div class="kpi kb"><div class="ki-bg">⚙️</div><div class="kl">Best Month CUF</div><div class="kv">18.1<span class="ku">%</span></div><div class="kf">Nov'22 · High irradiation</div></div>
+    <div class="kpi ko"><div class="ki-bg">⬇️</div><div class="kl">Worst Month CUF</div><div class="kv">11.8<span class="ku">%</span></div><div class="kf">Aug'23 · Monsoon + faults</div></div>
+  </div>
+
+  <div class="g g2" style="margin-bottom:14px">
+    <div class="card cb"><div class="ct" style="margin-bottom:12px">Monthly PR Trend — All 12 Months</div><canvas id="prTrendC" height="210"></canvas></div>
+    <div class="card cb"><div class="ct" style="margin-bottom:12px">Monthly CUF — vs 16% Target</div><canvas id="cufC" height="210"></canvas></div>
+  </div>
+
+  <div class="card" style="overflow:hidden;margin-bottom:14px">
+    <div class="ch" style="padding-bottom:12px"><div><div class="ct">Equipment PR & CUF Benchmarking Table</div><div class="cs">Ranked by annual PR — deviation from best performer flagged</div></div></div>
+    <table class="tbl">
+      <thead><tr><th>Equipment</th><th>Type</th><th class="r">Annual PR</th><th class="r">vs Best</th><th class="r">Annual CUF</th><th class="r">Annual Gen (MWh)</th><th class="r">Est. Loss vs Best</th><th class="r">Action</th></tr></thead>
+      <tbody>
+        <tr><td><b>Inverter 03</b></td><td>Inverter</td><td class="r gn">77.8%</td><td class="r gn">Reference</td><td class="r gn">16.4%</td><td class="r gn">3,511</td><td class="r gn">—</td><td class="r"><span class="pill ok">No action</span></td></tr>
+        <tr><td><b>Inverter 02</b></td><td>Inverter</td><td class="r gn">76.9%</td><td class="r an">−0.9%</td><td class="r gn">16.2%</td><td class="r">3,364</td><td class="r an">37 MWh</td><td class="r"><span class="pill ok">Monitor</span></td></tr>
+        <tr><td><b>Inverter 04</b></td><td>Inverter</td><td class="r gn">75.8%</td><td class="r an">−2.0%</td><td class="r">16.0%</td><td class="r">3,367</td><td class="r an">48 MWh</td><td class="r"><span class="pill ok">Monitor</span></td></tr>
+        <tr><td><b>Inverter 01</b></td><td>Inverter</td><td class="r rn">71.0%</td><td class="r rn">−6.8%</td><td class="r rn">14.9%</td><td class="r rn">3,166</td><td class="r rn">345 MWh</td><td class="r"><span class="pill crit">Inspect Now</span></td></tr>
+        <tr><td><b>SCB-3 Str 07</b></td><td>String</td><td class="r rn">69.2%</td><td class="r rn">−8.6%</td><td class="r rn">14.5%</td><td class="r rn">—</td><td class="r rn">High</td><td class="r"><span class="pill crit">Check Fuse</span></td></tr>
+        <tr><td><b>SCB-1 Str 04</b></td><td>String</td><td class="r an">74.1%</td><td class="r an">−3.7%</td><td class="r an">15.6%</td><td class="r">—</td><td class="r an">Moderate</td><td class="r"><span class="pill warn">Monitor</span></td></tr>
+        <tr><td><b>Transformer</b></td><td>Transformer</td><td class="r gn">98.8%</td><td class="r gn">+1.0%</td><td class="r">91%</td><td class="r gn">N/A</td><td class="r gn">None</td><td class="r"><span class="pill ok">Healthy</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card cb">
+    <div class="ct" style="margin-bottom:12px">PR & CUF Correlation — Monthly Scatter</div>
+    <canvas id="prCufScatter" height="150"></canvas>
+  </div>
+</div>
+
+<!-- ═══════ ACTIVE ALERTS ═══════ -->
+<div class="screen" id="s-alerts">
+  <div class="ph"><div class="ph-l"><div class="ph-name">Active Alerts</div><div class="ph-desc">7 open alerts · Ranked by financial impact · SGPPL</div></div><div class="ph-r"><span class="pill crit">2 Critical</span><span class="pill warn">3 Warning</span><span class="pill info">2 Info</span></div></div>
+
+  <div class="g g4" style="margin-bottom:18px">
+    <div class="kpi kr"><div class="ki-bg">🔴</div><div class="kl">Critical Alerts</div><div class="kv">2</div><div class="kf">Immediate action needed</div></div>
+    <div class="kpi ko"><div class="ki-bg">🟠</div><div class="kl">Warning Alerts</div><div class="kv">3</div><div class="kf">Investigate within 48 hrs</div></div>
+    <div class="kpi kb"><div class="ki-bg">🔵</div><div class="kl">Info Alerts</div><div class="kv">2</div><div class="kf">No immediate action</div></div>
+    <div class="kpi kr"><div class="ki-bg">💸</div><div class="kl">Est. Daily Loss</div><div class="kv">₹54,800</div><div class="kf">From all active alerts</div></div>
+  </div>
+
+  <div class="alc cr">
+    <div class="alc-top">
+      <div class="alc-ico">🔴</div>
+      <div class="alc-body">
+        <div class="alc-title">Inverter 01 — MPPT-D Critical Underperformance</div>
+        <div class="alc-meta"><span class="pill crit">Critical · P1</span><span class="pill neutral">Inv 01 · MPPT-D</span><span style="font-size:.64rem;color:var(--muted)">Detected 14 days ago · Open 14 days</span></div>
+        <div class="alc-desc">MPPT-D channel on Inverter 01 operating at 21% below expected. DC current severely degraded across strings 4, 7, 9 in SCB-1. AI root cause: string open-circuit or blown fuse (42%), connector degradation (27%). Predictive model: 68% failure probability within 30 days if unresolved.</div>
+      </div>
+    </div>
+    <div class="alc-foot">
+      <div class="alc-impact"><div class="alc-imp-item">Daily loss <b class="rn">₹9,500</b></div><div class="alc-imp-item">Accumulated <b class="rn">₹1.33 L</b></div><div class="alc-imp-item">Failure risk <b class="an">68% / 30 days</b></div></div>
+      <div class="btn-row"><button class="btn sec">Assign</button><button class="btn prim">Raise Work Order</button></div>
+    </div>
+  </div>
+
+  <div class="alc cr">
+    <div class="alc-top">
+      <div class="alc-ico">🔴</div>
+      <div class="alc-body">
+        <div class="alc-title">Module Soiling — Zone A Critical (14.2%)</div>
+        <div class="alc-meta"><span class="pill crit">Critical · P1</span><span class="pill neutral">Zone A · 120 modules</span><span style="font-size:.64rem;color:var(--muted)">Triggered 6 days ago</span></div>
+        <div class="alc-desc">Zone A soiling has reached 14.2%, the highest in the plant. Cleaning not performed since Sep 15. At current generation loss of 5,700 kWh/day from all zones, cleaning break-even is just 2.6 days. Net monthly recovery if cleaned today: ₹12.5 L.</div>
+      </div>
+    </div>
+    <div class="alc-foot">
+      <div class="alc-impact"><div class="alc-imp-item">Daily loss <b class="rn">₹22,800</b></div><div class="alc-imp-item">Cleaning cost <b class="gn">₹1.2 L</b></div><div class="alc-imp-item">Net recovery <b class="gn">₹12.5 L/month</b></div></div>
+      <div class="btn-row"><button class="btn sec">View Analysis</button><button class="btn amb">Schedule Cleaning</button></div>
+    </div>
+  </div>
+
+  <div class="alc wn">
+    <div class="alc-top">
+      <div class="alc-ico">🟠</div>
+      <div class="alc-body">
+        <div class="alc-title">SCB-3 String 07 — Specific Yield 18% Below Group</div>
+        <div class="alc-meta"><span class="pill warn">Warning · P2</span><span class="pill neutral">SCB-3 · Str 07</span><span style="font-size:.64rem;color:var(--muted)">Detected 8 days ago</span></div>
+        <div class="alc-desc">String 07 in SCB-3 yielding 1,089 kWh/kWp vs group avg 1,321 kWh/kWp — an 18% shortfall. DC current at 7.2A vs expected 9.1A. Likely cause: partial shading, soiling, or bypass diode failure on 2–3 modules.</div>
+      </div>
+    </div>
+    <div class="alc-foot">
+      <div class="alc-impact"><div class="alc-imp-item">Annual loss <b class="an">232 kWh</b></div><div class="alc-imp-item">Rev. impact <b class="an">₹1,856</b></div></div>
+      <div class="btn-row"><button class="btn sec">View String Data</button><button class="btn prim">Create Task</button></div>
+    </div>
+  </div>
+
+  <div class="alc wn">
+    <div class="alc-top">
+      <div class="alc-ico">🟠</div>
+      <div class="alc-body">
+        <div class="alc-title">Grid Availability — SLA Breach · WBSEDCL Escalation Required</div>
+        <div class="alc-meta"><span class="pill warn">Warning · P2</span><span class="pill neutral">Grid · Full Year</span><span style="font-size:.64rem;color:var(--muted)">Ongoing · 142 fault days</span></div>
+        <div class="alc-desc">Grid unavailable 142 days (38.9% of operating days), totalling 348.5 hrs. Contractual availability SLA likely breached. Energy lost: 1,182 MWh. Formal documentation and compensation claim filing recommended with WBSEDCL.</div>
+      </div>
+    </div>
+    <div class="alc-foot">
+      <div class="alc-impact"><div class="alc-imp-item">Energy lost <b class="rn">1,182 MWh</b></div><div class="alc-imp-item">Revenue impact <b class="rn">₹94.6 L</b></div></div>
+      <div class="btn-row"><button class="btn sec">Generate Report</button><button class="btn prim">Raise SLA Claim</button></div>
+    </div>
+  </div>
+
+  <div class="alc wn">
+    <div class="alc-top">
+      <div class="alc-ico">🟠</div>
+      <div class="alc-body">
+        <div class="alc-title">Transformer Load Factor Approaching Limit (91%)</div>
+        <div class="alc-meta"><span class="pill warn">Warning · P2</span><span class="pill neutral">Transformer · 33/0.415 kV</span><span style="font-size:.64rem;color:var(--muted)">Triggered today</span></div>
+        <div class="alc-desc">Transformer load factor reached 91% (9.1 MVA of 10 MVA rated). During peak generation hours in clear weather, load could approach 100%. Monitor closely; at peak irradiance above 900 W/m² this transformer may reach rated limit. Consider load management strategy.</div>
+      </div>
+    </div>
+    <div class="alc-foot">
+      <div class="alc-impact"><div class="alc-imp-item">Current load <b class="an">9.1 MVA</b></div><div class="alc-imp-item">Rated capacity <b>10 MVA</b></div><div class="alc-imp-item">Risk level <b class="an">Moderate</b></div></div>
+      <div class="btn-row"><button class="btn sec">View Parameters</button><button class="btn prim">Set Alert Threshold</button></div>
+    </div>
+  </div>
+
+  <div class="alc in">
+    <div class="alc-top">
+      <div class="alc-ico">🔵</div>
+      <div class="alc-body">
+        <div class="alc-title">Preventive Maintenance Due — Inverter 01 Cooling Fan</div>
+        <div class="alc-meta"><span class="pill info">Info · P3</span><span class="pill neutral">Inv 01</span><span style="font-size:.64rem;color:var(--muted)">Due within 15 days</span></div>
+        <div class="alc-desc">Inverter 01 cooling fan last serviced 11 months ago. Recommended service interval: 12 months. Schedule during next planned maintenance window. Overheating risk increases significantly if fan degrades, particularly in summer peak generation months.</div>
+      </div>
+    </div>
+    <div class="alc-foot">
+      <div class="alc-impact"><div class="alc-imp-item">Due date <b class="bn">Nov 15, 2023</b></div><div class="alc-imp-item">Type <b>Preventive</b></div></div>
+      <div class="btn-row"><button class="btn prim">Schedule PM</button></div>
+    </div>
+  </div>
+
+  <div class="alc in">
+    <div class="alc-top">
+      <div class="alc-ico">🔵</div>
+      <div class="alc-body">
+        <div class="alc-title">Annual Oil Test Due — Power Transformer</div>
+        <div class="alc-meta"><span class="pill info">Info · P3</span><span class="pill neutral">Transformer</span><span style="font-size:.64rem;color:var(--muted)">Due in 5 months</span></div>
+        <div class="alc-desc">Annual oil dielectric strength test due April 2024. Last test: April 2023, result: 42 kV (healthy, limit 30 kV). Schedule with accredited testing lab. Also plan silica gel inspection and tap changer service in same visit.</div>
+      </div>
+    </div>
+    <div class="alc-foot">
+      <div class="alc-impact"><div class="alc-imp-item">Due date <b class="bn">Apr 15, 2024</b></div><div class="alc-imp-item">Last result <b class="gn">42 kV (Healthy)</b></div></div>
+      <div class="btn-row"><button class="btn sec">View Last Report</button><button class="btn prim">Schedule Test</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ LOSS ANALYSIS ═══════ -->
+<div class="screen" id="s-loss">
+  <div class="ph"><div class="ph-l"><div class="ph-name">Loss Analysis</div><div class="ph-desc">SGPPL · Theoretical → actual waterfall · Full year</div></div></div>
+  <div class="g g4" style="margin-bottom:14px">
+    <div class="kpi kb"><div class="ki-bg">📊</div><div class="kl">Theoretical Yield</div><div class="kv">16,443<span class="ku">MWh</span></div><div class="kf">POA × 10,000 kWp</div></div>
+    <div class="kpi kr"><div class="ki-bg">📉</div><div class="kl">Total Losses</div><div class="kv">3,230<span class="ku">MWh</span></div><div class="kf">19.6% of theoretical</div></div>
+    <div class="kpi ka"><div class="ki-bg">⚡</div><div class="kl">Actual Export</div><div class="kv">13,213<span class="ku">MWh</span></div><div class="kf">PR: 74.6%</div></div>
+    <div class="kpi kg"><div class="ki-bg">💰</div><div class="kl">Recoverable Loss</div><div class="kv">1,216<span class="ku">MWh</span></div><div class="kf" style="color:var(--green)">~₹97.3 L potential</div></div>
+  </div>
+  <div class="g g2">
+    <div class="card cb"><div class="ct" style="margin-bottom:12px">Monthly Loss Breakdown (MWh)</div><canvas id="lossC" height="220"></canvas></div>
+    <div class="card cb"><div class="ct" style="margin-bottom:12px">Annual Loss by Category</div><canvas id="lossPieC" height="220"></canvas></div>
+  </div>
+</div>
+
+<!-- ═══════ ACTION CENTRE ═══════ -->
+<div class="screen" id="s-action">
+  <div class="ph"><div class="ph-l"><div class="ph-name">Action Centre</div><div class="ph-desc">3 open work orders · ranked by financial impact</div></div></div>
+  <div class="g g3" style="margin-bottom:18px">
+    <div class="kpi kr"><div class="kl">Open Critical</div><div class="kv">2</div><div class="kf">Act today</div></div>
+    <div class="kpi ko"><div class="kl">Open Warning</div><div class="kv">3</div><div class="kf">Within 48 hrs</div></div>
+    <div class="kpi kg"><div class="kl">Resolved This Month</div><div class="kv">4</div><div class="kf">₹22.4 L recovered</div></div>
+  </div>
+  <div style="background:var(--red-l);border:1px solid var(--red-m);border-radius:var(--r);padding:14px 18px;margin-bottom:14px">
+    <div style="font-size:.84rem;font-weight:800;color:var(--red);margin-bottom:4px">🔴 TODAY'S PRIORITY — Dispatch O&M Team</div>
+    <div style="font-size:.74rem;color:var(--muted);line-height:1.6">Inverter 01 MPPT-D has been underperforming for 14 days losing ₹9,500/day. Zone A soiling at 14.2% losing ₹22,800/day. Combined daily loss: <b style="color:var(--red)">₹32,300/day</b>. Both can be addressed in a single site visit. Estimated recovery: ₹12.5 L/month after cleaning + ₹8,200/day after inverter repair.</div>
+    <div style="margin-top:10px;display:flex;gap:8px"><button class="btn prim">Dispatch Team Now</button><button class="btn sec">View Full Instructions</button></div>
+  </div>
+  <div class="card cb">
+    <div class="ct" style="margin-bottom:14px">Work Order Queue</div>
+    <table class="tbl">
+      <thead><tr><th>#</th><th>Equipment</th><th>Issue</th><th class="r">Priority</th><th class="r">Daily Loss</th><th class="r">Assigned To</th><th class="r">Status</th><th class="r">Action</th></tr></thead>
+      <tbody>
+        <tr><td><b>WO-041</b></td><td>Inverter 01 MPPT-D</td><td>String current imbalance · Fuse suspected</td><td class="r"><span class="pill crit">P1</span></td><td class="r rn">₹9,500</td><td class="r">Unassigned</td><td class="r"><span class="pill warn">Open</span></td><td class="r"><button class="btn prim" style="font-size:.64rem;padding:3px 8px">Assign</button></td></tr>
+        <tr><td><b>WO-042</b></td><td>Zone A–C Modules</td><td>Soiling 10.9–14.2% · Cleaning required</td><td class="r"><span class="pill crit">P1</span></td><td class="r rn">₹22,800</td><td class="r">Unassigned</td><td class="r"><span class="pill warn">Open</span></td><td class="r"><button class="btn amb" style="font-size:.64rem;padding:3px 8px">Assign</button></td></tr>
+        <tr><td><b>WO-043</b></td><td>SCB-3 String 07</td><td>Specific yield 18% below avg</td><td class="r"><span class="pill warn">P2</span></td><td class="r an">₹520</td><td class="r">Team B</td><td class="r"><span class="pill info">In Progress</span></td><td class="r"><button class="btn sec" style="font-size:.64rem;padding:3px 8px">Update</button></td></tr>
+        <tr><td><b>WO-040</b></td><td>Transformer</td><td>Load factor monitoring · Set threshold</td><td class="r"><span class="pill warn">P2</span></td><td class="r">—</td><td class="r">Team A</td><td class="r"><span class="pill info">In Progress</span></td><td class="r"><button class="btn sec" style="font-size:.64rem;padding:3px 8px">Update</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- content -->
+</div><!-- main -->
+
+<script>
+// ─ NAV ──────────────────────────────────────────────────────────────────────
+const META={
+  portfolio:['Portfolio Overview','1.2 GW · 26 plants · Last sync 2 min ago'],
+  plant:['Plant Overview — SGPPL','10 MW · APSEB · Andra Pradesh · 2nd Year'],
+  inverter:['Inverter Intelligence — SGPPL','4 inverters · 2.5 MW each · Real-time + Historical'],
+  transformer:['Transformer Health — SGPPL','1×10 MVA · 33/0.415 kV · ONAN · Real-time'],
+  scb:['SCB / SMB String Monitoring — SGPPL','4 SCBs · 40 strings · Specific yield per string'],
+  cleaning:['Module Cleaning Intelligence — SGPPL','Soiling analysis · Economic justification · Schedule'],
+  prcuf:['PR & CUF Analysis — SGPPL','Equipment benchmarking · Monthly trends · Deviation flags'],
+  alerts:['Active Alerts — SGPPL','7 open alerts · Ranked by financial impact'],
+  loss:['Loss Analysis — SGPPL','Theoretical → actual waterfall · Full year'],
+  action:['Action Centre — SGPPL','3 open work orders · Ranked by financial impact'],
+};
+function goNav(btn,sc){
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.getElementById('s-'+sc).classList.add('on');
+  if(META[sc]){document.getElementById('pgT').textContent=META[sc][0];document.getElementById('pgS').textContent=META[sc][1];}
+  if(sc==='scb') buildStringTable();
+}
+// Give each nav btn a data attribute so we can navigate programmatically
+document.querySelectorAll('.nb').forEach((b,i)=>{const keys=Object.keys(META);b.dataset.sc=keys[i]});
+
+function itab(el,id){
+  const parent=el.closest('.screen');
+  parent.querySelectorAll('.itab').forEach(t=>t.classList.remove('on'));
+  parent.querySelectorAll('.itab-content').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById(id).classList.add('on');
+}
+
+// ─ DATA ─────────────────────────────────────────────────────────────────────
+const MO=["Nov'22","Dec'22","Jan'23","Feb'23","Mar'23","Apr'23","May'23","Jun'23","Jul'23","Aug'23","Sep'23","Oct'23"];
+const ACT=[1301,1081,996,933,1273,1210,1217,1086,1219,880,913,1103];
+const EXP=[1440,1230,1100,1210,1420,1420,1440,1210,1380,1010,1110,1280];
+const PR=[77.18,74.23,77.58,71.98,77.26,73.52,72.60,77.69,76.38,74.38,71.03,73.73];
+const CF=[18.07,14.53,13.39,13.88,17.11,16.80,16.36,15.08,16.39,11.83,12.68,14.83];
+const I1=[312,259,239,227,303,286,292,260,294,210,220,265];
+const I2=[335,276,255,236,324,306,304,275,312,226,234,282];
+const I3=[342,287,262,244,339,325,328,292,322,235,242,294];
+const I4=[330,273,253,239,326,313,313,277,311,223,232,279];
+const LG=[3.4,52.4,51.3,192,15,225.5,223.3,47.3,60.6,145.7,113.2,52.4];
+const LP=[2.6,0,1.8,10.4,1.1,0,7.4,4.9,2.2,0.9,1.2,1.1];
+const LS=[279.6,276.6,198.3,191.8,137.8,24.1,0,0,0,13.8,64.3,171.3];
+const SOIL=[5.2,8.4,9.1,8.7,6.2,2.1,0,0,0,1.3,5.4,12.4];
+const TRFOIL=[58,60,61,57,65,68,71,72,70,66,63,62];
+const TRWIND=[72,75,77,71,80,84,87,89,86,82,78,78];
+
+Chart.defaults.color='#94A3B8';
+Chart.defaults.font.family="'Plus Jakarta Sans',sans-serif";
+Chart.defaults.font.size=11;
+const GO={color:'rgba(15,23,42,.05)'};
+
+// ─ CHARTS ───────────────────────────────────────────────────────────────────
+// Plant gen
+new Chart(document.getElementById('plantGenC'),{type:'bar',
+  data:{labels:MO,datasets:[
+    {label:'Expected',data:EXP,backgroundColor:'#EEF2FF',borderColor:'#A5B4FC',borderWidth:1.5,borderRadius:4,borderSkipped:false},
+    {label:'Actual',data:ACT,backgroundColor:ACT.map((v,i)=>v<EXP[i]*0.92?'rgba(220,38,38,.72)':'rgba(245,158,11,.8)'),borderRadius:4,borderSkipped:false},
+  ]},
+  options:{responsive:true,plugins:{legend:{position:'top',align:'end',labels:{boxWidth:9,padding:12,usePointStyle:true,pointStyle:'circle'}}},
+    scales:{x:{grid:GO},y:{grid:GO,ticks:{callback:v=>v+' MWh'}}}}
+});
+// Plant PR
+new Chart(document.getElementById('plantPrC'),{type:'line',
+  data:{labels:MO,datasets:[
+    {label:'Actual PR',data:PR,borderColor:'#059669',backgroundColor:'rgba(5,150,105,.06)',borderWidth:2.5,pointRadius:5,pointBackgroundColor:PR.map(v=>v<73?'#DC2626':'#059669'),pointBorderColor:'#fff',pointBorderWidth:2,fill:true,tension:.35},
+    {label:'Target 78%',data:MO.map(()=>78),borderColor:'#A5B4FC',borderWidth:1.5,borderDash:[6,4],pointRadius:0},
+  ]},
+  options:{responsive:true,plugins:{legend:{position:'top',align:'end',labels:{boxWidth:9,padding:12,usePointStyle:true,pointStyle:'circle'}}},
+    scales:{x:{grid:GO},y:{grid:GO,min:68,max:83,ticks:{callback:v=>v+'%'}}}}
+});
+
+// Inverter PR multi-line
+new Chart(document.getElementById('invPrC'),{type:'line',
+  data:{labels:MO,datasets:[
+    {label:'Inv 1',data:I1.map((v,i)=>(v/I3[i]*99.1).toFixed(1)),borderColor:'#DC2626',backgroundColor:'rgba(220,38,38,.05)',borderWidth:2,pointRadius:3,fill:false,tension:.3},
+    {label:'Inv 2',data:I2.map((v,i)=>(v/I3[i]*99.1).toFixed(1)),borderColor:'#4F46E5',backgroundColor:'transparent',borderWidth:2,pointRadius:3,fill:false,tension:.3},
+    {label:'Inv 3',data:I3.map(()=>99.1),borderColor:'#059669',borderWidth:2,borderDash:[],pointRadius:3,fill:false,tension:.3},
+    {label:'Inv 4',data:I4.map((v,i)=>(v/I3[i]*99.1).toFixed(1)),borderColor:'#EA580C',backgroundColor:'transparent',borderWidth:2,pointRadius:3,fill:false,tension:.3},
+  ]},
+  options:{responsive:true,plugins:{legend:{position:'top',align:'end',labels:{boxWidth:9,padding:12,usePointStyle:true,pointStyle:'circle'}}},
+    scales:{x:{grid:GO},y:{grid:GO,min:88,max:102,ticks:{callback:v=>v+'%'}}}}
+});
+
+// Inverter gen bar
+new Chart(document.getElementById('invGenC'),{type:'bar',
+  data:{labels:MO,datasets:[
+    {label:'Inv 1',data:I1,backgroundColor:'rgba(220,38,38,.72)',borderRadius:3,borderSkipped:false},
+    {label:'Inv 2',data:I2,backgroundColor:'rgba(79,70,229,.72)',borderRadius:3,borderSkipped:false},
+    {label:'Inv 3',data:I3,backgroundColor:'rgba(5,150,105,.72)',borderRadius:3,borderSkipped:false},
+    {label:'Inv 4',data:I4,backgroundColor:'rgba(234,88,12,.72)',borderRadius:3,borderSkipped:false},
+  ]},
+  options:{responsive:true,plugins:{legend:{position:'top',align:'end',labels:{boxWidth:9,padding:12,usePointStyle:true,pointStyle:'circle'}}},
+    scales:{x:{grid:GO},y:{grid:GO,ticks:{callback:v=>v+' MWh'}}}}
+});
+
+// Inverter share donut
+new Chart(document.getElementById('invShareC'),{type:'doughnut',
+  data:{labels:['Inv 1','Inv 2','Inv 3','Inv 4'],
+    datasets:[{data:[3166,3364,3511,3367],backgroundColor:['#DC2626','#4F46E5','#059669','#EA580C'],borderColor:'#fff',borderWidth:3,hoverOffset:5}]},
+  options:{responsive:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{boxWidth:9,padding:10,usePointStyle:true,pointStyle:'circle'}},
+    tooltip:{callbacks:{label:c=>` ${c.label}: ${c.parsed} MWh (${(c.parsed/13408*100).toFixed(1)}%)`}}}}
+});
+
+// Transformer temp
+new Chart(document.getElementById('trfTempC'),{type:'line',
+  data:{labels:MO,datasets:[
+    {label:'Oil Temp (°C)',data:TRFOIL,borderColor:'#EA580C',backgroundColor:'rgba(234,88,12,.06)',borderWidth:2,pointRadius:3,fill:true,tension:.4},
+    {label:'Winding Temp (°C)',data:TRWIND,borderColor:'#DC2626',backgroundColor:'rgba(220,38,38,.04)',borderWidth:2,pointRadius:3,fill:true,tension:.4},
+    {label:'Oil Alarm (85°C)',data:MO.map(()=>85),borderColor:'rgba(234,88,12,.4)',borderWidth:1,borderDash:[5,4],pointRadius:0},
+  ]},
+  options:{responsive:true,plugins:{legend:{position:'top',align:'end',labels:{boxWidth:9,padding:12,usePointStyle:true,pointStyle:'circle'}}},
+    scales:{x:{grid:GO},y:{grid:GO,min:50,max:100,ticks:{callback:v=>v+'°C'}}}}
+});
+
+// Soiling chart
+new Chart(document.getElementById('soilC'),{type:'bar',
+  data:{labels:MO,datasets:[
+    {label:'Soiling %',data:SOIL,backgroundColor:SOIL.map(v=>v>10?'rgba(220,38,38,.75)':v>5?'rgba(234,88,12,.75)':'rgba(5,150,105,.6)'),borderRadius:4,borderSkipped:false}
+  ]},
+  options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` Soiling: ${c.parsed.y}%`}}},
+    scales:{x:{grid:GO},y:{grid:GO,ticks:{callback:v=>v+'%'}}}}
+});
+
+// String chart
+new Chart(document.getElementById('stringC'),{type:'bar',
+  data:{labels:Array.from({length:40},(_,i)=>`S${String(i+1).padStart(2,'0')}`),
+    datasets:[{label:'Specific Yield (kWh/kWp)',
+      data:Array.from({length:40},(_,i)=>{const base=1321;const r=Math.random();return i===6?1089:i===3?1411:i===12?1150:Math.round(base+(r-.5)*120)}),
+      backgroundColor:(ctx)=>{const v=ctx.raw;return v<1150?'rgba(220,38,38,.75)':v<1250?'rgba(234,88,12,.7)':'rgba(5,150,105,.65)'},
+      borderRadius:3,borderSkipped:false}]},
+  options:{responsive:true,plugins:{legend:{display:false}},
+    scales:{x:{grid:GO,ticks:{font:{size:9}}},y:{grid:GO,min:900,ticks:{callback:v=>v}}}}
+});
+
+// String table
+function buildStringTable(){
+  const tb=document.getElementById('stringTbody');
+  if(tb.innerHTML.trim()) return;
+  const scbs=['SCB-1','SCB-2','SCB-3','SCB-4'];
+  let html='';
+  for(let s=0;s<4;s++){
+    for(let r=0;r<10;r++){
+      const id=s*10+r;
+      const sy=id===6?1089:id===3?1411:id===12?1150:Math.round(1321+(Math.random()-.5)*120);
+      const isc=id===6?7.2:id===12?7.8:Math.round((9.0+(Math.random()-.5)*0.4)*10)/10;
+      const voc=Math.round(440+(Math.random()-.5)*10);
+      const pw=Math.round(isc*voc/1000*10)/10;
+      const avg=1321; const dev=((sy-avg)/avg*100).toFixed(1);
+      const st=sy<1150?['crit','Critical']:sy<1250?['warn','Warning']:['ok','Normal'];
+      html+=`<tr><td>${scbs[s]}</td><td>Str ${String(r+1).padStart(2,'0')}</td><td class="r">${isc}</td><td class="r">${voc}</td><td class="r">${pw}</td><td class="r ${sy<1150?'rn':sy<1250?'an':'gn'}" style="font-weight:700">${sy}</td><td class="r ${parseFloat(dev)<0?'rn':'gn'}">${parseFloat(dev)>=0?'+':''}${dev}%</td><td class="r"><span class="pill ${st[0]}">${st[1]}</span></td></tr>`;
+    }
+  }
+  tb.innerHTML=html;
+}
+
+// PR trend
+new Chart(document.getElementById('prTrendC'),{type:'line',
+  data:{labels:MO,datasets:[
+    {label:'Actual PR',data:PR,borderColor:'#4F46E5',backgroundColor:'rgba(79,70,229,.07)',borderWidth:2.5,pointRadius:5,pointBackgroundColor:PR.map(v=>v<73?'#DC2626':v<75?'#EA580C':'#059669'),pointBorderColor:'#fff',pointBorderWidth:2,fill:true,tension:.35},
+    {label:'Target 78%',data:MO.map(()=>78),borderColor:'rgba(5,150,105,.5)',borderWidth:1.5,borderDash:[6,4],pointRadius:0},
+  ]},
+  options:{responsive:true,plugins:{legend:{position:'top',align:'end',labels:{boxWidth:9,padding:12,usePointStyle:true,pointStyle:'circle'}}},
+    scales:{x:{grid:GO},y:{grid:GO,min:68,max:83,ticks:{callback:v=>v+'%'}}}}
+});
+
+// CUF chart
+new Chart(document.getElementById('cufC'),{type:'bar',
+  data:{labels:MO,datasets:[
+    {label:'CUF %',data:CF,backgroundColor:CF.map(v=>v<13?'rgba(220,38,38,.72)':v<16?'rgba(245,158,11,.8)':'rgba(5,150,105,.72)'),borderRadius:4,borderSkipped:false},
+    {label:'Target 16%',data:MO.map(()=>16),type:'line',borderColor:'rgba(79,70,229,.6)',borderWidth:1.5,borderDash:[5,4],pointRadius:0,backgroundColor:'transparent'},
+  ]},
+  options:{responsive:true,plugins:{legend:{position:'top',align:'end',labels:{boxWidth:9,padding:12,usePointStyle:true,pointStyle:'circle'}}},
+    scales:{x:{grid:GO},y:{grid:GO,ticks:{callback:v=>v+'%'}}}}
+});
+
+// PR vs CUF scatter
+new Chart(document.getElementById('prCufScatter'),{type:'scatter',
+  data:{datasets:[{label:'Monthly (PR vs CUF)',
+    data:PR.map((p,i)=>({x:p,y:CF[i]})),
+    backgroundColor:PR.map(v=>v<73?'rgba(220,38,38,.8)':v<75?'rgba(245,158,11,.8)':'rgba(5,150,105,.8)'),
+    pointRadius:7,pointHoverRadius:9}]},
+  options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`PR: ${c.raw.x}% · CUF: ${c.raw.y}%`}}},
+    scales:{x:{grid:GO,title:{display:true,text:'Performance Ratio (%)'},min:68,max:82},y:{grid:GO,title:{display:true,text:'CUF (%)'},min:10,max:20}}}
+});
+
+// Loss chart
+new Chart(document.getElementById('lossC'),{type:'bar',
+  data:{labels:MO,datasets:[
+    {label:'Grid Fault',data:LG,backgroundColor:'rgba(220,38,38,.75)',borderRadius:3,borderSkipped:false,stack:'l'},
+    {label:'Soiling',data:LS,backgroundColor:'rgba(234,88,12,.75)',borderRadius:3,borderSkipped:false,stack:'l'},
+    {label:'Plant Fault',data:LP,backgroundColor:'rgba(99,102,241,.75)',borderRadius:3,borderSkipped:false,stack:'l'},
+  ]},
+  options:{responsive:true,plugins:{legend:{position:'top',align:'end',labels:{boxWidth:9,padding:12,usePointStyle:true,pointStyle:'circle'}}},
+    scales:{x:{grid:GO},y:{grid:GO,stacked:true,ticks:{callback:v=>v+' MWh'}}}}
+});
+
+// Loss pie
+new Chart(document.getElementById('lossPieC'),{type:'doughnut',
+  data:{labels:['Grid Fault','Soiling','Temperature','Inverter','Plant Fault','Auxiliary'],
+    datasets:[{data:[1182,1357,342,157,34,194],backgroundColor:['#DC2626','#EA580C','#F59E0B','#6366F1','#A855F7','#94A3B8'],borderColor:'#fff',borderWidth:2,hoverOffset:4}]},
+  options:{responsive:true,cutout:'55%',plugins:{legend:{position:'bottom',labels:{boxWidth:9,padding:8,font:{size:10},usePointStyle:true,pointStyle:'circle'}},
+    tooltip:{callbacks:{label:c=>` ${c.label}: ${c.parsed} MWh`}}}}
+});
+</script>
+</body>
+</html>
